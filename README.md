@@ -16,6 +16,12 @@ Repository for Python Application
 
 ----
 
+wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+sudo systemctl start mongod
+
 Adding new instance
 sudo apt-get update
 sudo apt install npm
@@ -23,4 +29,7 @@ sudo apt install npm
 sudo apt-get install python3
 sudo apt install python3-pip
 sudo apt install gunicorn
+sudo apt-get install python3-venv
+python3 -m venv env
+source env/bin/activate
  
