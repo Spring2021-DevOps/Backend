@@ -6,7 +6,7 @@ import DatabaseOperations as database
 app = Flask(__name__)
 
 
-@app.route('/book-trip', methods=["POST"])
+@app.route('/book-trip', methods=["GET"])
 def bookTrip():
     firstName = "Divya"#request.json["firstName"]
     lastName = "Girase"#request.json["lastName"]
