@@ -3,7 +3,7 @@ from bson.objectid import ObjectId
 import uuid
 import DatabaseOperations as database
 from flask_cors import CORS
-import simplejson as json
+import json as JSON
 
 app = Flask(__name__)
 CORS(app)
@@ -17,9 +17,10 @@ def bookTrip():
         source = request.json["sourceP"]
         destination = request.json["destinationP"]
         journeyDate = request.json["journeydDateP"]
+        bookingID = str(ObjectId())
 
         booking = dict(firstName=firstName, lastName=lastName, source=source,
-                    destination=destination, journeyDate=journeyDate,
+                    destination=destination, journeyDate=journeyDate, _id=bookingID
                     )
         bookingId = database.add_booking(booking)
         print("Booked new trip!")
@@ -37,7 +38,7 @@ def bookTrip():
         }
         statusCode = 500
 
-    js = json.dumps(data)
+    js = JSON.dumps(data)
     response = Response(js, status=statusCode, mimetype='application/json')
     return response
 
@@ -54,11 +55,15 @@ def getAllBookings():
         statusCode = 200
 
     except Exception as e:
+        print(e)
         data = {
                 "message": "Cannot get booking list at this time. Please try again later",
-                "bookings": {}
+                "bookings": []
         }
         statusCode = 500
-    js = json.dumps(data)
+    js = JSON.dumps(data)
+    print(js)
     response = Response(js, status=statusCode, mimetype='application/json')
     return response
+
+app.run(host='0.0.0.0')

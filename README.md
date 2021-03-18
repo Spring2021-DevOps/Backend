@@ -17,10 +17,16 @@ Repository for Python Application
 ----
 
 wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+ubuntu 18
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
 echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
-sudo apt-get update
+sudo apt-get update -y
 sudo apt-get install -y mongodb-org
 sudo systemctl start mongod
+sudo systemctl status mongod
+sudo vi /etc/mongod.conf
+sudo systemctl restart mongod
+
 
 Adding new instance
 sudo apt-get update
