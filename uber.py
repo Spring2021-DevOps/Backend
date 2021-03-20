@@ -8,6 +8,10 @@ import json as JSON
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/health', methods=["GET"])
+def getHealth():
+    return "Hello from Python application"
+
 @app.route('/book-trip', methods=["POST"])
 def bookTrip():
     print("Booking new trip..")
