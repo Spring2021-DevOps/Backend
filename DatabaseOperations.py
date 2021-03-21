@@ -3,13 +3,15 @@ from random import randint
 import os
 
 myvars = {}
+db_host = ""
 with open(os.path.join("/home/ubuntu/webapp.properties")) as myfile:
     for line in myfile:
         name, var = line.partition("=")[::2]
         myvars[name.strip()] = (str(var)).strip('\n')
-    settings.userdata = myvars
+    db_host = str(myvars['db_host']).strip('\n')
+    print(db_host)
 
-client =MongoClient(host=str(settings.userdata['db_host']).strip('\n'), port=27017)
+client =MongoClient(host=db_host, port=27017)
 db=client.Uber
 
 def add_booking(booking):
