@@ -1,7 +1,15 @@
 from pymongo import MongoClient
 from random import randint
+import os
 
-client =MongoClient(host="50.19.142.213", port=27017)
+myvars = {}
+with open(os.path.join("/home/ubuntu/webapp.properties")) as myfile:
+    for line in myfile:
+        name, var = line.partition("=")[::2]
+        myvars[name.strip()] = (str(var)).strip('\n')
+    settings.userdata = myvars
+
+client =MongoClient(host=str(settings.userdata['db_host']).strip('\n'), port=27017)
 db=client.Uber
 
 def add_booking(booking):
