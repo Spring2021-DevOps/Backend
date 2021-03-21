@@ -43,8 +43,9 @@ def bookTrip():
         statusCode = 500
 
     js = JSON.dumps(data)
+    res = JSON.dumps({"bookings":data})
     response = Response(js, status=statusCode, mimetype='application/json')
-    return response
+    return res
 
 @app.route('/bookings', methods=["GET"])
 def getAllBookings():
@@ -52,23 +53,12 @@ def getAllBookings():
         bookings = database.get_bookings()
         if bookings is None:
             bookings = []
-        data = {
-                "message": "Booking List",
-                "bookings": bookings
-        }
-        statusCode = 200
 
     except Exception as e:
         print(e)
-        data = {
-                "message": "Cannot get booking list at this time. Please try again later",
-                "bookings": []
-        }
-        statusCode = 500
-    js = JSON.dumps(data)
-    print(js)
-    response = Response(js, status=statusCode, mimetype='application/json')
-    return response
+        bookings = []
+
+    return JSON.dumps({"results": list(bookings)})
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0')

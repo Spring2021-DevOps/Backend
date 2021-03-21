@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from random import randint
 
-client =MongoClient(host="52.91.135.86", port=27017)
+client =MongoClient(host="50.19.142.213", port=27017)
 db=client.Uber
 
 def add_booking(booking):
