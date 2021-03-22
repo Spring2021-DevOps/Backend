@@ -60,5 +60,13 @@ def getAllBookings():
 
     return JSON.dumps({"results": list(bookings)})
 
+@app.route('/analysis', methods=["GET"])
+def getCityFrequency():
+    try:
+        result = database.getCities()
+        return JSON.dumps({"city": list(result[0]), "count":list(result[1])})
+    except Exception as e:
+        print(e)
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0')

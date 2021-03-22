@@ -11,8 +11,24 @@ with open(os.path.join("/home/ubuntu/webapp.properties")) as myfile:
     db_host = str(myvars['db_host']).strip('\n')
     print(db_host)
 
-client =MongoClient(host=db_host, port=27017)
+client =MongoClient(host="localhost", port=27017)
 db=client.Uber
+
+def getCities():
+    print("Getting Cities")
+    result = {}
+    cities = []
+    count = []
+    result = db.bookings.aggregate(
+        [
+        {
+            "$group":{"_id":"$destination","Total":{"$sum":1}}
+        }
+        ])
+    for i in result: 
+        cities.append(i["_id"])
+        count.append(i["Total"])
+    return cities, count
 
 def add_booking(booking):
     print("Adding booking to database!")
