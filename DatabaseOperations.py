@@ -11,7 +11,7 @@ with open(os.path.join("/home/ubuntu/webapp.properties")) as myfile:
     db_host = str(myvars['db_host']).strip('\n')
     print(db_host)
 
-client =MongoClient(host="localhost", port=27017)
+client =MongoClient(host=db_host, port=27017)
 db=client.Uber
 
 def getCities():
