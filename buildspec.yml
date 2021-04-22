@@ -54,12 +54,12 @@ phases:
     - envsubst < deployments/backend-deployment.yaml | kubectl apply -f -
 
     - echo Installing prometheus
-    - kubectl create -f deployments/clusterRole.yaml --namespace=monitoring
-    - kubectl create -f deployments/config-map.yaml --namespace=monitoring
-    - kubectl create -f deployments/prometheus-deployment.yaml --namespace=monitoring
-    - kubectl create -f deployments/prometheus-service.yaml --namespace=monitoring
+    - kubectl apply -f deployments/clusterRole.yaml --namespace=monitoring
+    - kubectl apply -f deployments/config-map.yaml --namespace=monitoring
+    - kubectl apply -f deployments/prometheus-deployment.yaml --namespace=monitoring
+    - kubectl apply -f deployments/prometheus-service.yaml --namespace=monitoring
     
     - echo Installing grafana
-    - kubectl create -f deployments/grafana-datasource-config.yaml
-    - kubectl create -f deployments/grafana-datasource-deploy.yaml
-    - kubectl create -f deployments/grafana-datasource-service.yaml
+    - kubectl apply -f deployments/grafana-datasource-config.yaml
+    - kubectl apply -f deployments/grafana-datasource-deploy.yaml
+    - kubectl apply -f deployments/grafana-datasource-service.yaml
