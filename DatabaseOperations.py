@@ -7,12 +7,13 @@ db_host = ""
 with open(os.path.join("/home/ubuntu/webapp.properties")) as myfile:
     for line in myfile:
         name, var = line.partition("=")[::2]
-        myvars[name.strip()] = (str(var)).strip('\n')
-    db_host = str(myvars['db_host']).strip('\n')
+        myvars[name.strip()] = (str(var)).strip("\n")
+    db_host = str(myvars["db_host"]).strip("\n")
     print(db_host)
 
-client =MongoClient(host=db_host, port=27017)
-db=client.Uber
+client = MongoClient(host=db_host, port=27017)
+db = client.Uber
+
 
 def getCities():
     print("Getting Cities")
@@ -20,15 +21,13 @@ def getCities():
     cities = []
     count = []
     result = db.bookings.aggregate(
-        [
-        {
-            "$group":{"_id":"$destination","Total":{"$sum":1}}
-        }
-        ])
-    for i in result: 
+        [{"$group": {"_id": "$destination", "Total": {"$sum": 1}}}]
+    )
+    for i in result:
         cities.append(i["_id"])
         count.append(i["Total"])
     return cities, count
+
 
 def add_booking(booking):
     print("Adding booking to database!")
@@ -40,6 +39,7 @@ def add_booking(booking):
     except Exception as e:
         print("Booking new trip: An exception occurred: ", e)
     return bookingId
+
 
 def get_bookings():
     print("Getting all bookings from database!")

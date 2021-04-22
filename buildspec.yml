@@ -32,6 +32,13 @@ phases:
     commands:
       - docker login -u divyavgirase -p $DOCKER_SECRET
       - docker-compose up -d --build
+      - echo Running backend tests .....
+      - docker-compose exec -T python -m pytest "src/tests" -p no:warnings --cov="src"
+      - docker-compose exec -T flake8 ./
+      - docker-compose exec -T black ./ --check
+      - docker-compose exec -T isort ./ --check-only
+      - python3 -m pytest tests/
+      - echo Tests completed .....
       - echo Building images...
       - >
         docker build \
