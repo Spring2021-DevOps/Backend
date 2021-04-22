@@ -54,6 +54,7 @@ phases:
     - envsubst < deployments/backend-deployment.yaml | kubectl apply -f -
 
     - echo Installing prometheus
+    - kubectl create namespace monitoring --dry-run -o yaml | kubectl apply -f -
     - kubectl apply -f deployments/clusterRole.yaml --namespace=monitoring
     - kubectl apply -f deployments/config-map.yaml --namespace=monitoring
     - kubectl apply -f deployments/prometheus-deployment.yaml --namespace=monitoring
