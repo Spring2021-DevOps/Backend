@@ -44,9 +44,23 @@ phases:
     - echo Pushing prod images to ECR...
     - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/uber-python:$CODEBUILD_RESOLVED_SOURCE_VERSION
     - cd $CODEBUILD_SRC_DIR
+    
     - echo Installing metric server
     - kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml    
+    
     - echo Applying deployments
     - export CODEBUILD_RESOLVED_SOURCE_VERSION=$CODEBUILD_RESOLVED_SOURCE_VERSION
     - kubectl apply -f deployments/backend-alb.yaml
     - envsubst < deployments/backend-deployment.yaml | kubectl apply -f -
+
+    - echo Installing prometheus
+    - kubectl create namespace monitoring
+    - kubectl create -f deployments/clusterRole.yaml
+    - kubectl create -f deployments/config-map.yaml
+    - kubectl create -f deployments/prometheus-deployment.yaml --namespace=monitoring
+    - kubectl create -f deployments/prometheus-service.yaml --namespace=monitoring service/prometheus-service created
+    
+    - echo Installing grafana
+    - kubectl create -f deployments/grafana-datasource-config.yaml
+    - kubectl create -f deployments/grafana-datasource-deploy.yaml
+    - kubectl create -f deployments/grafana-datasource-service.yaml
