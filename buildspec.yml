@@ -58,7 +58,7 @@ phases:
     - kubectl create -f deployments/clusterRole.yaml
     - kubectl create -f deployments/config-map.yaml
     - kubectl create -f deployments/prometheus-deployment.yaml --namespace=monitoring
-    - kubectl create -f deployments/prometheus-service.yaml --namespace=monitoring service/prometheus-service created
+    - kubectl create -f deployments/prometheus-service.yaml --namespace=monitoring
     
     - echo Installing grafana
     - kubectl create -f deployments/grafana-datasource-config.yaml
