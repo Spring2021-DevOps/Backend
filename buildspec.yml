@@ -35,9 +35,9 @@ phases:
       - echo Building images...
       - >
         docker build \
-          -f Backend/Dockerfile \
+          -f Dockerfile \
           -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/uber-python:$CODEBUILD_RESOLVED_SOURCE_VERSION \
-          ./Backend
+          .
 
   post_build:
     commands:
