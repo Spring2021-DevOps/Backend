@@ -20,8 +20,6 @@ import json as JSON
 
 # straight mongo access
 from pymongo import MongoClient
-from prometheus_flask_exporter import PrometheusMetrics
-
 
 # security
 # pip install flask-bcrypt
@@ -41,18 +39,12 @@ app = Flask(__name__)
 CORS(app)
 bcrypt = Bcrypt(app)
 basedir = os.path.abspath(os.path.dirname(__file__))
-metrics = PrometheusMetrics(app, group_by='endpoint')
-
 
 # Here are my datasets
 bookings = dict()    
 
 ###########################################################################################
 @app.route('/health', methods=["GET"])
-@metrics.counter(
-    'get_health', 'Number of invocations', labels={
-        'endpoint': 'get_health'
-    })
 def getHealth():
     return "Hello from Python application"
 
@@ -459,12 +451,8 @@ def ssm():
 # secured with jwt
 # endpoint to create new booktrip
 @app.route("/book-trip", methods=["POST"])
-@metrics.counter(
-    'book_trip', 'Number of invocations', labels={
-        'endpoint': 'book_trip'
-    })
 def add_booktrip():
-    #book_trip_counter.inc()
+    
     user = request.json['user']
     firstName = request.json["firstNameP"]
     lastName = request.json["lastNameP"]
@@ -517,14 +505,8 @@ def get_bookings_week2():
     )
     return jsonify(weeksbookings)
 
-
 @app.route("/bookings", methods=["GET"])
-@metrics.counter(
-    'get_bookings', 'Number of invocations', labels={
-        'endpoint': 'get_bookings'
-    })
 def get_bookings_results():
-    #get_trip_counter.inc()
     return json.dumps({"results":
         sorted(
             bookings.values(),
@@ -564,7 +546,7 @@ def get_bookings_user_day():
         filter(lambda elem: 
                 elem[1]['date'].split(' ')[0] == datetime.now().strftime("%Y-%m-%d") and
                 (
-                    False == elem[1]['private'] or
+                   False == elem[1]['private'] or
                     user == elem[1]['user']
                 ), 
                 bookings.items())
@@ -601,12 +583,13 @@ def get_bookings_user_week():
 
 @app.route("/bookings-user-week-results", methods=["GET"])
 def get_bookings_user_week_results():
-    user = request.json['user']
+    #user = request.json['user']
+    user = 'anishkapuskar@gmail.com'
     weekbookings = dict(
         filter(lambda elem: 
                 (datetime.now() - datetime.strptime(elem[1]['date'].split(' ')[0], '%Y-%m-%d')).days < 7 and
                 (
-                    False == elem[1]['private'] or
+                    #False == elem[1]['private'] or
                     user == elem[1]['user']
                 ), 
                 bookings.items())
@@ -732,4 +715,4 @@ def before_request_func():
 # https://pythonise.com/series/learning-flask/building-a-flask-app-with-docker-compose
 
 if __name__ == '__main__':
-    app.run(debug=False, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0')
