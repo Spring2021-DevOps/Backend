@@ -517,11 +517,12 @@ def get_bookings_week2():
     )
     return jsonify(weeksbookings)
 
+
+@app.route("/bookings", methods=["GET"])
 @metrics.counter(
     'get_bookings', 'Number of invocations', labels={
         'endpoint': 'get_bookings'
     })
-@app.route("/bookings", methods=["GET"])
 def get_bookings_results():
     #get_trip_counter.inc()
     return json.dumps({"results":
