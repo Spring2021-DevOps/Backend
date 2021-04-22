@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sa-logic
+spec:
+  replicas: 1
+  minReadySeconds: 15
+  selector:
+    matchLabels:
+      app: sa-logic 
+  strategy:
+    type: RollingUpdate 
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1 
+  template:
+    metadata: 
+      labels:
+        app: sa-logic
+    spec:
+      containers:
+          - image: divyavgirase/sa-python:latest-amd
+            imagePullPolicy: Always 
+            name: sa-logic
+            env:
+              - name: SA_WEBAPP_API_URL
+                value: "http://sa-webapp-svc.default.svc.cluster.local:80"             
+            ports:
+              - containerPort: 5000
+      dnsPolicy: Default
