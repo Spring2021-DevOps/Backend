@@ -35,7 +35,7 @@ phases:
       - echo Building images...
       - >
         docker build \
-          -f Uber-Python/Dockerfile \
+          -f Backend/Dockerfile \
           -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/uber-python:$CODEBUILD_RESOLVED_SOURCE_VERSION \
           ./Backend
 
@@ -49,4 +49,4 @@ phases:
     - echo Applying deployments
     - export CODEBUILD_RESOLVED_SOURCE_VERSION=$CODEBUILD_RESOLVED_SOURCE_VERSION
     - kubectl apply -f deployments/backend-alb.yaml
-    - envsubst < deployment/backend-deployment.yaml | kubectl apply -f -
+    - envsubst < deployments/backend-deployment.yaml | kubectl apply -f -
