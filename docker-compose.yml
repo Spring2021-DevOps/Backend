@@ -6,7 +6,7 @@ services:
 
   uber-python:
     build:
-      context: ./Uber-Python
+      context: ./Backend
       dockerfile: Dockerfile
     #~dk getting rid of this because this hides all the files in /usr/src/app since I didn't specify
     # the local folder on the host as a shared folder with virtualbox! Also, I have no idea why we
