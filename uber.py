@@ -20,6 +20,7 @@ import json as JSON
 
 # straight mongo access
 from pymongo import MongoClient
+from prometheus_flask_exporter import PrometheusMetrics
 
 # security
 # pip install flask-bcrypt
@@ -39,12 +40,17 @@ app = Flask(__name__)
 CORS(app)
 bcrypt = Bcrypt(app)
 basedir = os.path.abspath(os.path.dirname(__file__))
+metrics = PrometheusMetrics(app, group_by='endpoint')
 
 # Here are my datasets
 bookings = dict()    
 
 ###########################################################################################
 @app.route('/health', methods=["GET"])
+@metrics.counter(
+    'get_health', 'Number of invocations', labels={
+        'endpoint': 'get_health'
+    })
 def getHealth():
     return "Hello from Python application"
 
@@ -451,6 +457,10 @@ def ssm():
 # secured with jwt
 # endpoint to create new booktrip
 @app.route("/book-trip", methods=["POST"])
+@metrics.counter(
+    'book_trip', 'Number of invocations', labels={
+        'endpoint': 'book_trip'
+    })
 def add_booktrip():
     
     user = request.json['user']
@@ -506,6 +516,10 @@ def get_bookings_week2():
     return jsonify(weeksbookings)
 
 @app.route("/bookings", methods=["GET"])
+@metrics.counter(
+    'get_bookings', 'Number of invocations', labels={
+        'endpoint': 'get_bookings'
+    })
 def get_bookings_results():
     return json.dumps({"results":
         sorted(
@@ -715,4 +729,4 @@ def before_request_func():
 # https://pythonise.com/series/learning-flask/building-a-flask-app-with-docker-compose
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=False, host='0.0.0.0')
