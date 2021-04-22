@@ -1,0 +1,28 @@
+#version: '3.8'
+# see here https://docs.docker.com/compose/compose-file/compose-versioning/
+version: '3.1'
+
+services:
+
+  uber-python:
+    build:
+      context: ./Uber-Python
+      dockerfile: Dockerfile
+    #~dk getting rid of this because this hides all the files in /usr/src/app since I didn't specify
+    # the local folder on the host as a shared folder with virtualbox! Also, I have no idea why we
+    # need a shared volume here..
+    #volumes:
+    #  - './services/users:/usr/src/app'
+    ports:
+      - 5004:5000
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=mongodb+srv://test:test@bookings.hclbd.mongodb.net/bookings?retryWrites=true&w=majority
+      - DATABASE_TEST_URL=mongodb://localhost:27017/
+    networks:
+      - backend
+      
+# bridge networks to allow the containers to communicate with each other
+networks:
+  backend:
+    driver: bridge
