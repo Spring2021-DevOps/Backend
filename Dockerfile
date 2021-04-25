@@ -3,6 +3,15 @@ WORKDIR /app
 ADD . .
 RUN apt-get update
 RUN pip3 install -r requirements.txt
+RUN pip3 install flake8
+RUN pip3 install black
+RUN pip3 install isort
+RUN pip3 install -U pytest
+RUN flake8 ./
+RUN black ./ --check
+RUN isort ./ --check-only
+RUN python3 -m pytest tests/
+
 
 # run as non-root user
 RUN adduser --disabled-password myuser
