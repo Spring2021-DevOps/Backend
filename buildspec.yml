@@ -30,14 +30,21 @@ phases:
           | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
   build:
     commands:
-      - docker login -u divyavgirase -p $DOCKER_SECRET
-      - docker-compose up -d --build
+      - apt install python3.8
+      - apt install python3-pip
+      - pip3 install flake8
+      - pip3 install black
+      - pip3 install isort
+      - pip3 install -U pytest
+      - pip3 install -r requirements.txt
       - echo Running backend tests .....
-      - docker-compose exec -T flake8 ./
-      - docker-compose exec -T black ./ --check
-      - docker-compose exec -T isort ./ --check-only
+      - flake8 ./
+      - black ./ --check
+      - isort ./ --check-only
       - python3 -m pytest tests/
       - echo Tests completed .....
+      - docker login -u divyavgirase -p $DOCKER_SECRET
+      - docker-compose up -d --build
       - echo Building images...
       - >
         docker build \

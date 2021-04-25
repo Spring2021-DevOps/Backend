@@ -3,9 +3,6 @@ WORKDIR /app
 ADD . .
 RUN apt-get update
 RUN pip3 install -r requirements.txt
-RUN pip3 install flake8
-RUN pip3 install black
-RUN pip3 install isort
 
 # run as non-root user
 RUN adduser --disabled-password myuser
