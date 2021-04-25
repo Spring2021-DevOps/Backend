@@ -13,7 +13,7 @@ Repository for Python Application
 
 ##gunicorn -w 4 -b 0.0.0.0:5000 booking:app
 
-----
+--
 
 wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
 ubuntu 18
