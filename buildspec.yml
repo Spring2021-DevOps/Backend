@@ -33,7 +33,6 @@ phases:
       - docker login -u divyavgirase -p $DOCKER_SECRET
       - docker-compose up -d --build
       - echo Running backend tests .....
-      - docker-compose exec -T python -m pytest "src/tests" -p no:warnings --cov="src"
       - docker-compose exec -T flake8 ./
       - docker-compose exec -T black ./ --check
       - docker-compose exec -T isort ./ --check-only
@@ -59,6 +58,9 @@ phases:
     - export CODEBUILD_RESOLVED_SOURCE_VERSION=$CODEBUILD_RESOLVED_SOURCE_VERSION
     - kubectl apply -f deployments/backend-alb.yaml
     - envsubst < deployments/backend-deployment.yaml | kubectl apply -f -
+    - echo Deploying Horizontal pod autoscaling.....
+    - kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+    - kubectl autoscale deployment sa-logic --cpu-percent=50 --min=1 --max=10
 
     - echo Installing prometheus
     - kubectl create namespace monitoring --dry-run -o yaml | kubectl apply -f -

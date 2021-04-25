@@ -40,12 +40,18 @@ app = Flask(__name__)
 CORS(app)
 bcrypt = Bcrypt(app)
 basedir = os.path.abspath(os.path.dirname(__file__))
-metrics = PrometheusMetrics(app, group_by='endpoint')
+metrics = PrometheusMetrics(app, group_by='endpoint')   
 
 # Here are my datasets
 bookings = dict()    
 
 ###########################################################################################
+
+@app.route('/unittest')
+def index():
+    return jsonify({'hello': 'world'})
+
+
 @app.route('/health', methods=["GET"])
 @metrics.counter(
     'get_health', 'Number of invocations', labels={
@@ -85,6 +91,43 @@ def getCityFrequency():
 ###########################################################################################
 
 
+################################
+# Add new users
+################################
+def insert_user(r):
+    start_time = datetime.now()
+    with mongo_client:
+        #start_time_db = datetime.now()
+        db = mongo_client['bookings']
+        #microseconds_caching_db = (datetime.now() - start_time_db).microseconds
+        #print("*** It took " + str(microseconds_caching_db) + " microseconds to cache mongo handle.")
+        print("...insert_user() to mongo: ", r)
+        try:
+            mongo_collection = db['users']
+            result = mongo_collection.insert_one(r)
+            print("inserted _ids: ", result.inserted_id)
+        except Exception as e:
+            print(e)
+    microseconds_doing_mongo_work = (datetime.now() - start_time).microseconds
+    print("*** It took " + str(microseconds_doing_mongo_work) + " microseconds to insert_one.")
+@app.route("/register", methods=["POST"])
+@metrics.counter(
+    'add_user', 'Number of invocations', labels={
+        'endpoint': 'add_user'
+    })
+def add_user():
+    username = request.json['username']
+    password = request.json["password"]
+    adduser = dict(username=username, password=password,
+                _id=str(ObjectId()))
+    #users[adduser['_id']] = adduser
+    insert_user(adduser)
+    print('User submitted:', adduser)
+    return jsonify(adduser)
+
+
+
+
 ################
 # Security
 ################
@@ -101,13 +144,13 @@ def set_env_var():
     if 'refresh_token_expiration' not in g:
         g['refresh_token_expiration'] = os.environ.get("REFRESH_TOKEN_EXPIRATION", 2592000)
     if 'users' not in g:
-        users = os.environ.get("USERS", 'Elon Musk,Bill Gates,Jeff Bezos')
+        users = os.environ.get("USERS", 'Elon Musk,Bill Gates,Jeff Bezos,divyagirase,anishkapuskar,anishkapuskar@gmail.com,divyagirase90@gmail.com,test')
         print('users=', users)
         print('g.users=', list(users.split(',')))
         g['users'] = list(users.split(','))
         print('g.users=', g['users'])
     if 'passwords' not in g:
-        passwords = os.environ.get("PASSWORDS", 'Tesla,Clippy,Blue Horizon')
+        passwords = os.environ.get("PASSWORDS", 'Tesla,Clippy,Blue Horizon,divya123,anish123,anish123,divya123,test')
         g['passwords'] = list(passwords.split(','))
         print("g['passwords']=", g['passwords'])
         # Once hashed, the value is irreversible. However in the case of 
@@ -167,7 +210,7 @@ def home():
 
 @app.route("/doc")
 def doc(): 
-    return """Welcome to online mongo/twitter testing ground!<br />
+    return """Welcome to online mongo/uber testing ground!<br />
         <br />
         Run the following endpoints:<br />
         From collection:<br/>
@@ -470,16 +513,16 @@ def add_booktrip():
     destination = request.json["destinationP"]
     journeyDate = request.json["journeydDateP"]
 
-   # access_token = request.json['access-token']
-    access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYW5pc2hrYXB1c2thckBnbWFpbC5jb20iLCJmaXJzdE5hbWVQIjoiQW5pc2giLCJsYXN0TmFtZVAiOiJLYXB1c2thciIsInNvdXJjZVAiOiJCb3N0b24iLCJkZXN0aW5hdGlvblAiOiJTdW5ueXZhbGUiLCJqb3VybmV5RGF0ZSI6IjIwMjEtMDQtMjAifQ.Ggeq4KlFtfSc1rw4q6UdhedbGW5yTyhgru9Kuu6vDps"
+    access_token = request.json['access-token']
+   # access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYW5pc2hrYXB1c2thckBnbWFpbC5jb20iLCJmaXJzdE5hbWVQIjoiQW5pc2giLCJsYXN0TmFtZVAiOiJLYXB1c2thciIsInNvdXJjZVAiOiJCb3N0b24iLCJkZXN0aW5hdGlvblAiOiJTdW5ueXZhbGUiLCJqb3VybmV5RGF0ZSI6IjIwMjEtMDQtMjAifQ.Ggeq4KlFtfSc1rw4q6UdhedbGW5yTyhgru9Kuu6vDps"
     print("access_token:", access_token)
     permission = verify_token(access_token)
- #   if not permission[0]: 
- #       print("Booking the trip denied due to invalid token!")
- #       print(permission[1])
- #       return permission[1]
- #   else:
-    print('access token accepted!')
+    if not permission[0]: 
+        print("Booking the trip denied due to invalid token!")
+        print(permission[1])
+        return permission[1]
+    else:
+        print('access token accepted!')
 
     booktrip = dict(user=user, firstName=firstName, lastName=lastName, source=source,
                  destination=destination,journeyDate=journeyDate,date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -555,7 +598,7 @@ def filter_booktrip(t):
                 destination=booktrip['destination'],journeyDate=booktrip['journeyDate'], user=booktrip['user'])
 @app.route("/bookings-user-day", methods=["POST"])
 def get_bookings_user_day():
-    user = request.json['user']
+    user = "anishkapuskar@gmail.com"
     todaysbookings = dict(
         filter(lambda elem: 
                 elem[1]['date'].split(' ')[0] == datetime.now().strftime("%Y-%m-%d") and
@@ -597,8 +640,9 @@ def get_bookings_user_week():
 
 @app.route("/bookings-user-week-results", methods=["GET"])
 def get_bookings_user_week_results():
+    user = request.args.get('user')
     #user = request.json['user']
-    user = 'anishkapuskar@gmail.com'
+    #user = 'anishkapuskar@gmail.com'
     weekbookings = dict(
         filter(lambda elem: 
                 (datetime.now() - datetime.strptime(elem[1]['date'].split(' ')[0], '%Y-%m-%d')).days < 7 and
