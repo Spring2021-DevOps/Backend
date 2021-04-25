@@ -40,17 +40,16 @@ app = Flask(__name__)
 CORS(app)
 bcrypt = Bcrypt(app)
 basedir = os.path.abspath(os.path.dirname(__file__))
-metrics = PrometheusMetrics(app, group_by='endpoint')   
+metrics = PrometheusMetrics(app, group_by='endpoint')
 
 # Here are my datasets
 bookings = dict()    
-
+users1 = dict()
 ###########################################################################################
 
 @app.route('/unittest')
 def index():
     return jsonify({'hello': 'world'})
-
 
 @app.route('/health', methods=["GET"])
 @metrics.counter(
@@ -89,43 +88,6 @@ def getCityFrequency():
     except Exception as e:
         print(e)
 ###########################################################################################
-
-
-################################
-# Add new users
-################################
-def insert_user(r):
-    start_time = datetime.now()
-    with mongo_client:
-        #start_time_db = datetime.now()
-        db = mongo_client['bookings']
-        #microseconds_caching_db = (datetime.now() - start_time_db).microseconds
-        #print("*** It took " + str(microseconds_caching_db) + " microseconds to cache mongo handle.")
-        print("...insert_user() to mongo: ", r)
-        try:
-            mongo_collection = db['users']
-            result = mongo_collection.insert_one(r)
-            print("inserted _ids: ", result.inserted_id)
-        except Exception as e:
-            print(e)
-    microseconds_doing_mongo_work = (datetime.now() - start_time).microseconds
-    print("*** It took " + str(microseconds_doing_mongo_work) + " microseconds to insert_one.")
-@app.route("/register", methods=["POST"])
-@metrics.counter(
-    'add_user', 'Number of invocations', labels={
-        'endpoint': 'add_user'
-    })
-def add_user():
-    username = request.json['username']
-    password = request.json["password"]
-    adduser = dict(username=username, password=password,
-                _id=str(ObjectId()))
-    #users[adduser['_id']] = adduser
-    insert_user(adduser)
-    print('User submitted:', adduser)
-    return jsonify(adduser)
-
-
 
 
 ################
@@ -210,7 +172,7 @@ def home():
 
 @app.route("/doc")
 def doc(): 
-    return """Welcome to online mongo/uber testing ground!<br />
+    return """Welcome to online mongo/twitter testing ground!<br />
         <br />
         Run the following endpoints:<br />
         From collection:<br/>
@@ -227,25 +189,35 @@ def doc():
 @app.route("/login", methods=["POST"])
 def login():
     try:
+
+        print("keys")
+        
         user = request.json['name']
         password = request.json['password']
         print('user:', user)
+        obj = get_user(user)
         print('password:', password)
         print('users:', get_env_var('users'))
         if not user or not password:
             print('not user or not password!')
             return jsonify(("Authentication is required and has failed!", status.HTTP_401_UNAUTHORIZED))
-        elif not user in get_env_var('users'):
+
+        elif obj["username"] != user:
             print('unknown user!')
             return jsonify(("Unknown user!", status.HTTP_401_UNAUTHORIZED))
+
+        # elif not user in get_env_var('users'):
+        #     print('unknown user!')
+        #     return jsonify(("Unknown user!", status.HTTP_401_UNAUTHORIZED))
         else:
             # presumably we only store password hashes and compare passed pwd
             # with our stored hash. For simplicity, we store the full password
             # and the hash, which we retrieve here
-            print('password_hashes:', get_env_var('password_hashes'))
-            print("get_env_var('users').index(user):", get_env_var('users').index(user))
-            password_hash = get_env_var('password_hashes')[get_env_var('users').index(user)]
-            print('password_hash:', password_hash)
+            # print('password_hashes:', get_env_var('password_hashes'))
+            # print("get_env_var('users').index(user):", get_env_var('users').index(user))
+            # password_hash = get_env_var('password_hashes')[get_env_var('users').index(user)]
+            # print('password_hash:', password_hash)
+            password_hash = obj["password_hash"]
             a = datetime.now()
             if not bcrypt.check_password_hash(password_hash, password):
                 print('bcrypt.check_password_hash(password_hash, password) returned False!')
@@ -264,7 +236,8 @@ def login():
 
             # create access and refresh token for the user to save.
             # User needs to pass access token for all secured APIs.
-            userid = get_env_var('userids')[get_env_var('users').index(user)]
+            #userid = get_env_var('userids')[get_env_var('users').index(user)]
+            userid = obj["username"]
             access_token = encode_token(userid, "access")
             refresh_token = encode_token(userid, "refresh")
             print('type(access_token):', type(access_token))
@@ -289,8 +262,8 @@ def login():
 @app.route("/fastlogin", methods=["POST"])
 def fastlogin():
     try:
-        access_token = request.json['access-token']
-        refresh_token = request.json['refresh-token']
+        access_token = request.json['access']
+        refresh_token = request.json['refresh']
 
         if not access_token or not refresh_token:
             return jsonify(("Missing token(s)!", status.HTTP_401_UNAUTHORIZED))
@@ -298,8 +271,9 @@ def fastlogin():
             try:
                 # first, with access token:
                 userid = decode_token(access_token)
+                obj = get_user(userid)
 
-                if not userid or not userid in get_env_var('userids'):
+                if obj["username"] != userid:
                     return jsonify(("User unknown, please login with username and password.", status.HTTP_401_UNAUTHORIZED))
 
                 try:
@@ -507,24 +481,22 @@ def ssm():
 def add_booktrip():
     
     user = request.json['user']
-    firstName = request.json["firstNameP"]
-    lastName = request.json["lastNameP"]
     source = request.json["sourceP"]
     destination = request.json["destinationP"]
     journeyDate = request.json["journeydDateP"]
 
-    access_token = request.json['access-token']
-   # access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYW5pc2hrYXB1c2thckBnbWFpbC5jb20iLCJmaXJzdE5hbWVQIjoiQW5pc2giLCJsYXN0TmFtZVAiOiJLYXB1c2thciIsInNvdXJjZVAiOiJCb3N0b24iLCJkZXN0aW5hdGlvblAiOiJTdW5ueXZhbGUiLCJqb3VybmV5RGF0ZSI6IjIwMjEtMDQtMjAifQ.Ggeq4KlFtfSc1rw4q6UdhedbGW5yTyhgru9Kuu6vDps"
+   # access_token = request.json['access-token']
+    access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYW5pc2hrYXB1c2thckBnbWFpbC5jb20iLCJmaXJzdE5hbWVQIjoiQW5pc2giLCJsYXN0TmFtZVAiOiJLYXB1c2thciIsInNvdXJjZVAiOiJCb3N0b24iLCJkZXN0aW5hdGlvblAiOiJTdW5ueXZhbGUiLCJqb3VybmV5RGF0ZSI6IjIwMjEtMDQtMjAifQ.Ggeq4KlFtfSc1rw4q6UdhedbGW5yTyhgru9Kuu6vDps"
     print("access_token:", access_token)
     permission = verify_token(access_token)
-    if not permission[0]: 
-        print("Booking the trip denied due to invalid token!")
-        print(permission[1])
-        return permission[1]
-    else:
-        print('access token accepted!')
+ #   if not permission[0]: 
+ #       print("Booking the trip denied due to invalid token!")
+ #       print(permission[1])
+ #       return permission[1]
+ #   else:
+    print('access token accepted!')
 
-    booktrip = dict(user=user, firstName=firstName, lastName=lastName, source=source,
+    booktrip = dict(user=user, source=source,
                  destination=destination,journeyDate=journeyDate,date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 _id=str(ObjectId()))
     bookings[booktrip['_id']] = booktrip
@@ -593,12 +565,11 @@ def get_bookings_week_results():
 # endpoint to show all of today's bookings (user-specific)
 def filter_booktrip(t):
     booktrip = bookings[t]
-    return dict(date=booktrip['date'], firstName=booktrip['firstName'], 
-                lastName=booktrip['lastName'], source=booktrip['source'],
+    return dict(date=booktrip['date'], source=booktrip['source'],
                 destination=booktrip['destination'],journeyDate=booktrip['journeyDate'], user=booktrip['user'])
 @app.route("/bookings-user-day", methods=["POST"])
 def get_bookings_user_day():
-    user = "anishkapuskar@gmail.com"
+    user = request.json['user']
     todaysbookings = dict(
         filter(lambda elem: 
                 elem[1]['date'].split(' ')[0] == datetime.now().strftime("%Y-%m-%d") and
@@ -640,8 +611,8 @@ def get_bookings_user_week():
 
 @app.route("/bookings-user-week-results", methods=["GET"])
 def get_bookings_user_week_results():
+    print(request)
     user = request.args.get('user')
-    #user = request.json['user']
     #user = 'anishkapuskar@gmail.com'
     weekbookings = dict(
         filter(lambda elem: 
@@ -690,6 +661,76 @@ def applyCollectionLevelUpdates():
         for booktrip in sorted_records:
             bookings[booktrip['_id']] = booktrip
 
+
+################################
+# Add new users
+################################
+def insert_user(r):
+    start_time = datetime.now()
+    with mongo_client:
+        #start_time_db = datetime.now()
+        db = mongo_client['bookings']
+        #microseconds_caching_db = (datetime.now() - start_time_db).microseconds
+        #print("*** It took " + str(microseconds_caching_db) + " microseconds to cache mongo handle.")
+
+        print("...insert_user() to mongo: ", r)
+        try:
+            mongo_collection = db['users']
+            result = mongo_collection.insert_one(r)
+            print("inserted _ids: ", result.inserted_id)
+        except Exception as e:
+            print(e)
+
+    microseconds_doing_mongo_work = (datetime.now() - start_time).microseconds
+    print("*** It took " + str(microseconds_doing_mongo_work) + " microseconds to insert_one.")
+
+
+@app.route("/register", methods=["POST"])
+@metrics.counter(
+    'add_user', 'Number of invocations', labels={
+        'endpoint': 'add_user'
+    })
+def add_user():
+    
+    username = request.json['username']
+    password = request.json["password"]
+    password_hash = bcrypt.generate_password_hash(password, 13).decode('utf-8')
+    adduser = dict(username=username, password=password, password_hash = password_hash,
+                _id=str(ObjectId()))
+                
+    users1[username] = password
+
+    insert_user(adduser)
+    print('User submitted:', adduser)
+    return jsonify(adduser)
+
+
+################################
+# Get new users
+################################
+
+def get_user(username):
+    start_time = datetime.now()
+    obj = {}
+    with mongo_client:
+        #start_time_db = datetime.now()
+        db = mongo_client['bookings']
+        #microseconds_caching_db = (datetime.now() - start_time_db).microseconds
+        #print("*** It took " + str(microseconds_caching_db) + " microseconds to cache mongo handle.")
+
+        print("...get_user() from mongo: ", username)
+        try:
+            mongo_collection = db['users']
+            result = mongo_collection.find({"username":username})
+            #print("inserted _ids: ", result)
+            for doc in result:
+                    obj = doc
+        except Exception as e:
+            print(e)
+    return obj
+
+    microseconds_doing_mongo_work = (datetime.now() - start_time).microseconds
+    print("*** It took " + str(microseconds_doing_mongo_work) + " microseconds to insert_one.")   
 
 ################################################
 # Mock
