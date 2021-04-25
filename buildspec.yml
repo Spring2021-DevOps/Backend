@@ -23,6 +23,7 @@ phases:
       - mkdir -p $HOME/bin && cp ./aws-iam-authenticator $HOME/bin/aws-iam-authenticator && export PATH=$HOME/bin:$PATH
       - aws-iam-authenticator help
       - pip3 install pytest
+      - pip3 install -r requirements.txt
   pre_build:
     commands:
       - python -m pytest
@@ -58,7 +59,7 @@ phases:
     - envsubst < deployments/backend-deployment.yaml | kubectl apply -f -
     - echo Deploying Horizontal pod autoscaling.....
     - kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-    - kubectl autoscale deployment sa-logic --cpu-percent=20 --min=1 --max=10
+    - kubectl autoscale deployment sa-logic --cpu-percent=20 --min=1 --max=10 --dry-run -o yaml  | kubectl apply -f -
 
     - echo Installing prometheus
     - kubectl create namespace monitoring --dry-run -o yaml | kubectl apply -f -
