@@ -172,7 +172,7 @@ def home():
 
 @app.route("/doc")
 def doc(): 
-    return """Welcome to online mongo/twitter testing ground!<br />
+    return """Welcome to online mongo/uber testing ground!<br />
         <br />
         Run the following endpoints:<br />
         From collection:<br/>
