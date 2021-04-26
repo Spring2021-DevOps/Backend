@@ -51,15 +51,13 @@ phases:
     - cd $CODEBUILD_SRC_DIR
     
     - echo Installing metric server
-    - kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml    
+    - kubectl apply -f deployments/metrics-server.yaml  
     
     - echo Applying deployments
     - export CODEBUILD_RESOLVED_SOURCE_VERSION=$CODEBUILD_RESOLVED_SOURCE_VERSION
     - kubectl apply -f deployments/backend-alb.yaml
     - envsubst < deployments/backend-deployment.yaml | kubectl apply -f -
-    - echo Deploying Horizontal pod autoscaling.....
-    - kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-    - kubectl autoscale deployment sa-logic --cpu-percent=20 --min=1 --max=10 --dry-run -o yaml  | kubectl apply -f -
+    - kubectl autoscale deployment sa-logic --cpu-percent=20 --min=1 --max=5 --dry-run -o yaml  | kubectl apply -f -
 
     - echo Installing prometheus
     - kubectl create namespace monitoring --dry-run -o yaml | kubectl apply -f -
