@@ -10,4 +10,4 @@ export default function () {
 }
 
 
-//k6 run -e PY_HOST=python_host -e PY_PORT=5000 --vus 10 --duration 30s k6-loadtesting.js
+//cmd: k6 run -e PY_HOST=python_host -e PY_PORT=5000 --vus 10 --duration 30s k6-loadtesting.js
