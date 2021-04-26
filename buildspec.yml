@@ -51,7 +51,7 @@ phases:
     - cd $CODEBUILD_SRC_DIR
     
     - echo Installing metric server
-    - kubectl apply -f deployments/metrics-server.yaml  
+    - kubectl apply -f deployments/metric-server.yaml  
     
     - echo Applying deployments
     - export CODEBUILD_RESOLVED_SOURCE_VERSION=$CODEBUILD_RESOLVED_SOURCE_VERSION
